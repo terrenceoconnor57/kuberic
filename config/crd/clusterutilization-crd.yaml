@@ -1,0 +1,98 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clusterutilizations.monitoring.kuberic.io
+spec:
+  group: monitoring.kuberic.io
+  names:
+    kind: ClusterUtilization
+    listKind: ClusterUtilizationList
+    plural: clusterutilizations
+    singular: clusterutilization
+    shortNames:
+      - cu
+  scope: Cluster
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                scrapeIntervalSeconds:
+                  type: integer
+                  default: 60
+                  minimum: 10
+                thresholds:
+                  type: object
+                  properties:
+                    cpu:
+                      type: integer
+                      default: 80
+                      minimum: 1
+                      maximum: 100
+                    memory:
+                      type: integer
+                      default: 85
+                      minimum: 1
+                      maximum: 100
+            status:
+              type: object
+              properties:
+                summary:
+                  type: object
+                  properties:
+                    cpuPercent:
+                      type: number
+                    memoryPercent:
+                      type: number
+                percentiles:
+                  type: object
+                  properties:
+                    cpu:
+                      type: object
+                      properties:
+                        p50:
+                          type: number
+                        p90:
+                          type: number
+                        p95:
+                          type: number
+                    memory:
+                      type: object
+                      properties:
+                        p50:
+                          type: number
+                        p90:
+                          type: number
+                        p95:
+                          type: number
+                topNamespaces:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      namespace:
+                        type: string
+                      cpuMillicores:
+                        type: integer
+                saturation:
+                  type: object
+                  properties:
+                    pendingPods:
+                      type: integer
+                    unschedulablePods:
+                      type: integer
+                timestamp:
+                  type: string
+                recommendations:
+                  type: array
+                  items:
+                    type: string
+

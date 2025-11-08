@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kuberic-operator
+  namespace: kube-system
+  labels:
+    app: kuberic-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kuberic-operator
+  template:
+    metadata:
+      labels:
+        app: kuberic-operator
+    spec:
+      serviceAccountName: kuberic-operator
+      containers:
+        - name: operator
+          image: kuberic-operator:dev
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          args:
+            - kopf
+            - run
+            - --standalone
+            - /app/src/kuberic/main.py
+

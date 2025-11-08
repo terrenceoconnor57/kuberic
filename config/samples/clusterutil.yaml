@@ -1,0 +1,10 @@
+apiVersion: monitoring.kuberic.io/v1
+kind: ClusterUtilization
+metadata:
+  name: cluster
+spec:
+  scrapeIntervalSeconds: 60
+  thresholds:
+    cpu: 80
+    memory: 85
+
