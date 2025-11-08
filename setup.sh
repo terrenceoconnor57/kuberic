@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 echo "=========================================="
@@ -13,26 +13,64 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo -e "${YELLOW}Step 1: Installing Python dependencies...${NC}"
-if command -v python3 &> /dev/null; then
-    # Try with venv first
-    if python3 -m venv --help &> /dev/null; then
-        echo "Creating virtual environment..."
-        python3 -m venv venv
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}✗ Python3 not found. Please install Python 3.x${NC}"
+    exit 1
+fi
+
+# Try different installation methods in order of preference
+INSTALLED=false
+
+# Method 1: Try venv (cleanest)
+if python3 -m venv --help &> /dev/null 2>&1; then
+    echo "Creating virtual environment..."
+    if python3 -m venv venv 2>/dev/null; then
         source venv/bin/activate
         pip install --upgrade pip > /dev/null 2>&1
-        pip install kopf kubernetes pydantic
-    else
-        # Fall back to --break-system-packages
-        echo "Installing with --break-system-packages..."
-        pip install --break-system-packages kopf kubernetes pydantic
+        if pip install kopf kubernetes pydantic 2>/dev/null; then
+            INSTALLED=true
+            echo -e "${GREEN}✓ Python dependencies installed in virtual environment${NC}"
+        else
+            deactivate 2>/dev/null || true
+            rm -rf venv
+        fi
     fi
-    echo -e "${GREEN}✓ Python dependencies installed${NC}"
-else
-    echo -e "${RED}✗ Python3 not found. Please install Python 3.x${NC}"
+fi
+
+# Method 2: Try pip with --break-system-packages (for containerized environments)
+if [ "$INSTALLED" = false ]; then
+    echo "Installing with --break-system-packages..."
+    if pip install --break-system-packages kopf kubernetes pydantic 2>/dev/null; then
+        INSTALLED=true
+        echo -e "${GREEN}✓ Python dependencies installed${NC}"
+    elif pip3 install --break-system-packages kopf kubernetes pydantic 2>/dev/null; then
+        INSTALLED=true
+        echo -e "${GREEN}✓ Python dependencies installed${NC}"
+    fi
+fi
+
+# Method 3: Try without any flags (might work on some systems)
+if [ "$INSTALLED" = false ]; then
+    echo "Trying standard pip install..."
+    if pip install --user kopf kubernetes pydantic 2>/dev/null; then
+        INSTALLED=true
+        echo -e "${GREEN}✓ Python dependencies installed${NC}"
+    elif pip3 install --user kopf kubernetes pydantic 2>/dev/null; then
+        INSTALLED=true
+        echo -e "${GREEN}✓ Python dependencies installed${NC}"
+    fi
+fi
+
+if [ "$INSTALLED" = false ]; then
+    echo -e "${RED}✗ Failed to install Python dependencies${NC}"
+    echo "Please install manually:"
+    echo "  pip install --break-system-packages kopf kubernetes pydantic"
+    echo "or"
+    echo "  python3 -m venv venv && source venv/bin/activate && pip install kopf kubernetes pydantic"
     exit 1
 fi
 
