@@ -113,8 +113,8 @@ def scrape_metrics(spec, name, namespace, status, logger, patch, **kwargs):
         
         logger.info(f"kuberic: cpu={cpu_pct:.1f}% p90={cpu_p90:.1f}% mem={mem_pct:.1f}% pods={len(pods.items)}")
         
-        # Update status directly via patch instead of returning
-        patch.status = {
+        # Update status directly via patch - use update() method not assignment
+        patch.status.update({
             'summary': {
                 'cpuPercent': round(cpu_pct, 2),
                 'memoryPercent': round(mem_pct, 2)
@@ -130,7 +130,7 @@ def scrape_metrics(spec, name, namespace, status, logger, patch, **kwargs):
             },
             'timestamp': timestamp,
             'recommendations': recommendations
-        }
+        })
         
     except Exception as e:
         logger.error(f"Error scraping metrics: {e}", exc_info=True)
