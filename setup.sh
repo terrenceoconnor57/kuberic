@@ -44,10 +44,10 @@ fi
 # Method 2: Try pip with --break-system-packages (for containerized environments)
 if [ "$INSTALLED" = false ]; then
     echo "Installing with --break-system-packages..."
-    if pip install --break-system-packages kopf kubernetes pydantic 2>/dev/null; then
+    if pip install --break-system-packages --ignore-installed typing-extensions kopf kubernetes pydantic > /dev/null 2>&1; then
         INSTALLED=true
         echo -e "${GREEN}✓ Python dependencies installed${NC}"
-    elif pip3 install --break-system-packages kopf kubernetes pydantic 2>/dev/null; then
+    elif pip3 install --break-system-packages --ignore-installed typing-extensions kopf kubernetes pydantic > /dev/null 2>&1; then
         INSTALLED=true
         echo -e "${GREEN}✓ Python dependencies installed${NC}"
     fi
@@ -56,21 +56,24 @@ fi
 # Method 3: Try without any flags (might work on some systems)
 if [ "$INSTALLED" = false ]; then
     echo "Trying standard pip install..."
-    if pip install --user kopf kubernetes pydantic 2>/dev/null; then
+    if pip install --user --ignore-installed typing-extensions kopf kubernetes pydantic > /dev/null 2>&1; then
         INSTALLED=true
         echo -e "${GREEN}✓ Python dependencies installed${NC}"
-    elif pip3 install --user kopf kubernetes pydantic 2>/dev/null; then
+    elif pip3 install --user --ignore-installed typing-extensions kopf kubernetes pydantic > /dev/null 2>&1; then
         INSTALLED=true
         echo -e "${GREEN}✓ Python dependencies installed${NC}"
     fi
 fi
 
 if [ "$INSTALLED" = false ]; then
-    echo -e "${RED}✗ Failed to install Python dependencies${NC}"
-    echo "Please install manually:"
-    echo "  pip install --break-system-packages kopf kubernetes pydantic"
-    echo "or"
-    echo "  python3 -m venv venv && source venv/bin/activate && pip install kopf kubernetes pydantic"
+    echo -e "${RED}✗ Failed to install Python dependencies automatically${NC}"
+    echo ""
+    echo "Please try manually:"
+    echo "  pip install --break-system-packages --ignore-installed typing-extensions kopf kubernetes pydantic"
+    echo ""
+    echo "Or if that doesn't work, packages may already be installed. Try running the operator:"
+    echo "  kopf run --verbose src/kuberic/main.py"
+    echo ""
     exit 1
 fi
 
