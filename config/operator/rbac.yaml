@@ -11,7 +11,7 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: ["monitoring.kuberic.io"]
     resources: ["clusterutilizations"]
-    verbs: ["get", "list", "watch"]
+    verbs: ["get", "list", "watch", "patch"]
   - apiGroups: ["monitoring.kuberic.io"]
     resources: ["clusterutilizations/status"]
     verbs: ["update", "patch"]

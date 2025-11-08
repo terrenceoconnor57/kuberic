@@ -41,7 +41,7 @@ def create_fn(spec, name, namespace, logger, **kwargs):
 
 
 @kopf.timer('monitoring.kuberic.io', 'v1', 'clusterutilizations', interval=60, initial_delay=5)
-def scrape_metrics(spec, name, namespace, status, logger, **kwargs):
+def scrape_metrics(spec, name, namespace, status, logger, patch, **kwargs):
     interval = spec.get('scrapeIntervalSeconds', 60)
     cpu_threshold = spec.get('thresholds', {}).get('cpu', 80)
     mem_threshold = spec.get('thresholds', {}).get('memory', 85)
@@ -113,7 +113,8 @@ def scrape_metrics(spec, name, namespace, status, logger, **kwargs):
         
         logger.info(f"kuberic: cpu={cpu_pct:.1f}% p90={cpu_p90:.1f}% mem={mem_pct:.1f}% pods={len(pods.items)}")
         
-        return {
+        # Update status directly via patch instead of returning
+        patch.status = {
             'summary': {
                 'cpuPercent': round(cpu_pct, 2),
                 'memoryPercent': round(mem_pct, 2)
@@ -133,7 +134,6 @@ def scrape_metrics(spec, name, namespace, status, logger, **kwargs):
         
     except Exception as e:
         logger.error(f"Error scraping metrics: {e}", exc_info=True)
-        return status or {}
 
 
 def parse_cpu(cpu_str: str) -> float:
